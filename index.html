@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>วันนี้กินอะไรดี</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --color-black-olive: #1d0b0d;
+    --color-forest-ink: #103b15;
+    --color-lemon-zest: #f7ea48;
+    --color-warm-cream: #fcf9f0;
+    --color-sage-mist: #dbe2dc;
+    --color-pure-white: #ffffff;
+    --hairline-dark: rgba(219, 226, 220, .25);
+    --font: "DM Sans", "Noto Sans Thai", "Sarabun", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--color-black-olive);
+    color: var(--color-warm-cream);
+    font-family: var(--font);
+    font-size: 19px; line-height: 1.5; letter-spacing: .02em;
+  }
+  a { color: inherit; }
+  button { font-family: inherit; letter-spacing: inherit; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+  /* nav */
+  .member { position: absolute; right: 20px; font-size: 16px; }
+  @media (max-width: 720px) { .member { font-size: 14px; right: 12px; max-width: 34vw; text-align: right; line-height: 1.3; } .wordmark { font-size: 20px; } }
+  .nav { position: relative; height: 80px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--hairline-dark); }
+  .wordmark { font-size: 26px; font-weight: 500; letter-spacing: .06em; color: var(--color-warm-cream); text-decoration: none; }
+
+  /* hero */
+  .hero { padding: 60px 0 40px; text-align: center; }
+  h1 { margin: 0; font-weight: 400; color: var(--color-lemon-zest); font-size: clamp(46px, 11vw, 75px); line-height: 1.25; letter-spacing: .04em; }
+  .sub { margin: 20px 0 40px; font-size: 20px; }
+  .pick {
+    background: var(--color-lemon-zest); color: var(--color-black-olive);
+    border: 0; border-radius: 1px; cursor: pointer;
+    font-size: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+    padding: 16px 48px; min-width: min(100%, 320px);
+  }
+  .pick:hover { background: var(--color-warm-cream); }
+  .pick:focus-visible, .heart:focus-visible, .like:focus-visible, .chip:focus-visible, .top:focus-visible { outline: 2px solid var(--color-pure-white); outline-offset: 3px; }
+
+  /* visual tiles: flat, square, no radius */
+  .visual { display: flex; align-items: center; justify-content: center; background: var(--color-forest-ink); font-size: 5rem; line-height: 1; overflow: hidden; }
+  .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* today (dark) */
+  #today:not(:empty) { margin-top: 60px; text-align: left; }
+  #today .card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 30px; align-items: center; }
+  #today .visual { aspect-ratio: 1; font-size: 8rem; }
+  #today h2 { font-size: clamp(30px, 6vw, 46px); line-height: 1.25; font-weight: 500; letter-spacing: .04em; margin: 0 0 15px; }
+  #today p { margin: 0 0 20px; max-width: 640px; }
+  #today .body { display: flex; flex-direction: column; align-items: flex-start; }
+  #today .body .text { order: 1; }
+  #today .body .heart { order: 2; }
+
+  .heart {
+    width: 44px; height: 44px; border-radius: 1px; cursor: pointer;
+    border: 1px solid var(--color-pure-white); background: transparent;
+    color: var(--color-warm-cream); font-size: 1.4rem; line-height: 1;
+  }
+  .heart[aria-pressed="true"] { color: var(--color-lemon-zest); border-color: var(--color-lemon-zest); }
+
+  .detail-link { color: inherit; text-decoration: none; }
+  .detail-link:hover, .detail-link:focus-visible { text-decoration: underline; }
+
+  /* favorites (dark) */
+  .favs-block { padding: 60px 0; }
+  h3 { margin: 0 0 20px; font-size: 30px; font-weight: 500; letter-spacing: .03em; line-height: 1.25; }
+  #favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0 30px; }
+  #favs .card { display: flex; align-items: center; gap: 20px; padding: 12px 0; border-bottom: 1px solid var(--hairline-dark); }
+  #favs .visual { width: 72px; height: 72px; font-size: 2rem; flex: none; }
+  #favs .body { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  #favs h2 { margin: 0; font-size: 20px; font-weight: 500; line-height: 1.3; }
+  #favs .empty { grid-column: 1 / -1; }
+  .empty { margin: 0; opacity: .8; }
+
+  /* all menus (cream) */
+  .all-block { background: var(--color-warm-cream); color: var(--color-forest-ink); padding: 60px 0 80px; }
+  .all-title { margin: 0 0 20px; text-align: center; font-size: clamp(30px, 6vw, 36px); font-weight: 500; line-height: 1.25; letter-spacing: .03em; }
+  .filters { max-width: 640px; margin: 0 auto 40px; }
+  #search {
+    width: 100%; font: inherit; font-size: 16px; padding: 12px 16px;
+    border: 1px solid var(--color-forest-ink); border-radius: 1px;
+    background: var(--color-warm-cream); color: var(--color-black-olive);
+  }
+  #search::placeholder { color: var(--color-forest-ink); opacity: .7; }
+  #search:focus-visible { outline: 2px solid var(--color-forest-ink); outline-offset: 2px; }
+  #chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
+  .chip {
+    font-size: 16px; padding: 8px 16px; cursor: pointer; border-radius: 1px;
+    border: 1px solid var(--color-forest-ink); background: transparent; color: var(--color-forest-ink);
+  }
+  .chip[aria-pressed="true"] { background: var(--color-black-olive); border-color: var(--color-black-olive); color: var(--color-warm-cream); }
+  .chip:focus-visible, .all-block .like:focus-visible { outline-color: var(--color-forest-ink); }
+
+  #all { display: grid; gap: 40px 30px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  #all .card { display: flex; flex-direction: column; }
+  #all .visual { aspect-ratio: 1; background: var(--color-sage-mist); font-size: 5.5rem; }
+  #all .cap { margin-top: 20px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; font-weight: 500; }
+  #all h2 { margin: 8px 0; font-size: 20px; font-weight: 500; line-height: 1.3; color: var(--color-black-olive); }
+  #all p { margin: 0 0 15px; flex: 1; font-size: 19px; line-height: 1.4; }
+  .like {
+    align-self: flex-start; background: none; border: 0; padding: 4px 0; cursor: pointer;
+    font-size: 16px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: var(--color-forest-ink);
+  }
+  .like:hover { text-decoration: underline; }
+  .like[aria-pressed="true"] { font-weight: 600; text-decoration: underline; }
+  #all .empty { grid-column: 1 / -1; text-align: center; }
+
+  .top {
+    position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px; border-radius: 40px;
+    background: var(--color-forest-ink); color: var(--color-warm-cream); border: 0; cursor: pointer;
+    font-size: 16px; line-height: 1; display: none;
+  }
+  .top.show { display: block; }
+
+  @media (max-width: 720px) {
+    #today .card { grid-template-columns: minmax(0, 1fr); }
+    .hero { padding-top: 40px; }
+  }
+</style>
+</head>
+<body>
+<header class="nav"><a class="wordmark" href="index.html">วันนี้กินอะไรดี</a><a class="member" href="register.html">สมัครสมาชิก</a></header>
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <h1>วันนี้กินอะไรดี</h1>
+      <p class="sub">ไม่รู้จะกินอะไร ให้เราเลือกให้</p>
+      <button class="pick" id="pick" type="button">สุ่มเมนู</button>
+      <div id="today" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="favs-block">
+    <div class="wrap">
+      <h3>เมนูโปรดของฉัน</h3>
+      <div id="favs"></div>
+    </div>
+  </section>
+
+  <section class="all-block">
+    <div class="wrap">
+      <h2 class="all-title">เมนูทั้งหมด</h2>
+      <div class="filters">
+        <input id="search" type="search" placeholder="ค้นหาเมนู..." aria-label="ค้นหาเมนู" autocomplete="off">
+        <div id="chips" role="group" aria-label="กรองตามประเภท"></div>
+      </div>
+      <div id="all"></div>
+    </div>
+  </section>
+</main>
+<button class="top" id="top" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
+
+<script src="menus.js"></script>
+<script>
+  const STORAGE_KEY = "thai-food-favorites";
+  const byId = new Map(MENUS.map(m => [m.id, m]));
+
+  let today = null;          // เมนูวันนี้ (ไม่เก็บข้ามการรีเฟรช)
+  let favorites = load();    // รายการ id ของเมนูโปรด
+  let query = "";            // คำค้นหา
+  let category = "";         // ประเภทที่กรอง ("" = ทั้งหมด)
+
+  function load() {
+    try {
+      const ids = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      return ids.filter(id => byId.has(id));
+    } catch { return []; }
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites)); } catch {}
+  }
+
+  function pickMenu() {
+    // สุ่มจากทุกเมนูเท่ากัน แต่ไม่ซ้ำกับเมนูที่เพิ่งได้
+    const pool = MENUS.filter(m => !today || m.id !== today.id);
+    today = pool[Math.floor(Math.random() * pool.length)];
+    render();
+  }
+
+  function toggleFavorite(id) {
+    favorites = favorites.includes(id)
+      ? favorites.filter(f => f !== id)
+      : [...favorites, id];
+    save();
+    render();
+  }
+
+  function detailLink(menu) {
+    const a = document.createElement("a");
+    a.href = "details.html?id=" + encodeURIComponent(menu.id);
+    a.textContent = menu.name;
+    a.className = "detail-link";
+    return a;
+  }
+
+  function visual(menu) {
+    const div = document.createElement("div");
+    div.className = "visual";
+    if (menu.image) {
+      const img = document.createElement("img");
+      img.src = menu.image;
+      img.alt = menu.name;
+      img.onerror = () => { div.textContent = menu.emoji; };
+      div.append(img);
+    } else {
+      div.textContent = menu.emoji;
+    }
+    return div;
+  }
+
+  function heart(menu) {
+    const on = favorites.includes(menu.id);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "heart";
+    b.textContent = on ? "♥" : "♡";
+    b.setAttribute("aria-pressed", on);
+    b.setAttribute("aria-label", (on ? "เลิกชอบ " : "ชอบ ") + menu.name);
+    b.onclick = () => toggleFavorite(menu.id);
+    return b;
+  }
+
+  function card(menu, withDescription) {
+    const el = document.createElement("article");
+    el.className = "card";
+    const body = document.createElement("div");
+    body.className = "body";
+    const text = document.createElement("div");
+    text.className = "text";
+    const h = document.createElement("h2");
+    h.append(detailLink(menu));
+    text.append(h);
+    if (withDescription) {
+      const p = document.createElement("p");
+      p.textContent = menu.description;
+      text.append(p);
+    }
+    body.append(text, heart(menu));
+    el.append(visual(menu), body);
+    return el;
+  }
+
+  function allCard(menu) {
+    const on = favorites.includes(menu.id);
+    const el = document.createElement("article");
+    el.className = "card";
+    const e = document.createElement("div");
+    e.className = "visual";
+    if (menu.image) {
+      const img = document.createElement("img");
+      img.src = menu.image;
+      img.alt = menu.name;
+      img.onerror = () => { e.textContent = menu.emoji; };
+      e.append(img);
+    } else {
+      e.textContent = menu.emoji;
+    }
+    const h = document.createElement("h2");
+    h.append(detailLink(menu));
+    const tag = document.createElement("div");
+    tag.className = "cap";
+    tag.textContent = menu.category;
+    const p = document.createElement("p");
+    p.textContent = menu.description;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "like";
+    b.textContent = on ? "♥ ชอบแล้ว" : "♡ ชอบเมนูนี้";
+    b.setAttribute("aria-pressed", on);
+    b.onclick = () => toggleFavorite(menu.id);
+    el.append(e, tag, h, p, b);
+    return el;
+  }
+
+  function render() {
+    const todayEl = document.getElementById("today");
+    todayEl.replaceChildren(...(today ? [card(today, true)] : []));
+
+    const favsEl = document.getElementById("favs");
+    if (favorites.length === 0) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "ยังไม่มีเมนูโปรด กดหัวใจที่เมนูที่ชอบได้เลย";
+      favsEl.replaceChildren(p);
+    } else {
+      favsEl.replaceChildren(...favorites.map(id => card(byId.get(id), false)));
+    }
+    renderAll();
+    document.getElementById("pick").textContent = today ? "สุ่มใหม่" : "สุ่มเมนู";
+  }
+
+  function renderChips() {
+    const cats = ["ทั้งหมด", ...new Set(MENUS.map(m => m.category))];
+    document.getElementById("chips").replaceChildren(...cats.map(c => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = c;
+      b.setAttribute("aria-pressed", (c === "ทั้งหมด" ? "" : c) === category);
+      b.onclick = () => {
+        category = c === "ทั้งหมด" ? "" : c;
+        renderChips();
+        renderAll();
+      };
+      return b;
+    }));
+  }
+
+  function renderAll() {
+    const q = query.trim().toLowerCase();
+    const list = MENUS.filter(m =>
+      (!category || m.category === category) &&
+      (!q || (m.name + " " + m.description + " " + m.category).toLowerCase().includes(q)));
+    const el = document.getElementById("all");
+    if (list.length === 0) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "ไม่พบเมนูที่ค้นหา";
+      el.replaceChildren(p);
+    } else {
+      el.replaceChildren(...list.map(allCard));
+    }
+  }
+
+  document.getElementById("search").oninput = e => { query = e.target.value; renderAll(); };
+  document.getElementById("pick").onclick = pickMenu;
+  const topBtn = document.getElementById("top");
+  addEventListener("scroll", () => topBtn.classList.toggle("show", scrollY > 600), { passive: true });
+  topBtn.onclick = () => scrollTo({ top: 0, behavior: "smooth" });
+  renderChips();
+  render();
+</script>
+</body>
+</html>

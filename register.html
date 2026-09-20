@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สมัครสมาชิก</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --color-black-olive: #1d0b0d;
+    --color-lemon-zest: #f7ea48;
+    --color-warm-cream: #fcf9f0;
+    --color-pure-white: #ffffff;
+    --hairline-dark: rgba(219, 226, 220, .25);
+    --font: "DM Sans", "Noto Sans Thai", "Sarabun", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-black-olive); color: var(--color-warm-cream); font-family: var(--font); font-size: 19px; line-height: 1.5; letter-spacing: .02em; }
+  a { color: inherit; }
+  button, input { font-family: inherit; letter-spacing: inherit; }
+  .nav { height: 80px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--hairline-dark); }
+  .wordmark { font-size: 26px; font-weight: 500; letter-spacing: .06em; text-decoration: none; }
+  main { max-width: 440px; margin: 0 auto; padding: 48px 20px 80px; }
+  h1 { margin: 0 0 24px; font-weight: 400; font-size: 36px; line-height: 1.25; color: var(--color-lemon-zest); }
+  label { display: block; margin: 0 0 16px; font-size: 16px; }
+  input { display: block; width: 100%; margin-top: 6px; padding: 12px 16px; font-size: 16px; border-radius: 1px; border: 1px solid var(--color-warm-cream); background: transparent; color: var(--color-warm-cream); }
+  input:focus-visible, .submit:focus-visible { outline: 2px solid var(--color-pure-white); outline-offset: 3px; }
+  .submit { width: 100%; margin-top: 8px; padding: 14px; font-size: 18px; font-weight: 600; cursor: pointer; border: 0; border-radius: 1px; background: var(--color-lemon-zest); color: var(--color-black-olive); }
+  .submit:hover { background: var(--color-warm-cream); }
+  .submit:disabled { opacity: .6; cursor: default; }
+  .msg { min-height: 1.5em; margin: 16px 0 0; font-size: 16px; }
+  .msg.error { color: #ff9b9b; }
+  .msg.ok { color: var(--color-lemon-zest); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="nav"><a class="wordmark" href="index.html">วันนี้กินอะไรดี</a></header>
+<main>
+  <section id="signup">
+    <h1>สมัครสมาชิก</h1>
+    <form id="form" novalidate>
+      <label>ชื่อ
+        <input id="first_name" type="text" maxlength="100" autocomplete="given-name">
+      </label>
+      <label>นามสกุล
+        <input id="last_name" type="text" maxlength="100" autocomplete="family-name">
+      </label>
+      <label>อีเมล
+        <input id="email" type="email" maxlength="254" autocomplete="email">
+      </label>
+      <label>เบอร์โทรศัพท์
+        <input id="phone" type="tel" inputmode="tel" maxlength="15" placeholder="0812345678" autocomplete="tel">
+      </label>
+      <button class="submit" id="submit" type="submit">สมัครสมาชิก</button>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="done" hidden>
+    <h1>สมัครสมาชิกสำเร็จ</h1>
+    <p>ขอบคุณที่สมัครสมาชิก</p>
+    <p><a href="index.html">กลับหน้าแรก</a></p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  function say(text, kind) {
+    $("msg").textContent = text;
+    $("msg").className = "msg " + (kind || "");
+  }
+
+  $("form").onsubmit = async e => {
+    e.preventDefault();
+    const row = {
+      first_name: $("first_name").value.trim(),
+      last_name: $("last_name").value.trim(),
+      email: $("email").value.trim(),
+      phone: $("phone").value.replace(/[\s-]/g, ""),
+    };
+    if (!row.first_name) return say("กรุณากรอกชื่อ", "error");
+    if (!row.last_name) return say("กรุณากรอกนามสกุล", "error");
+    if (!$("email").checkValidity() || !row.email) return say("กรุณากรอกอีเมลให้ถูกต้อง", "error");
+    if (!/^0[0-9]{8,9}$/.test(row.phone)) return say("เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0 และมี 9-10 หลัก", "error");
+
+    $("submit").disabled = true;
+    say("กำลังบันทึก...");
+    // ไม่ขอข้อมูลกลับ (ตารางไม่เปิดให้อ่าน)
+    const { error } = await sb.from("members").insert(row);
+    $("submit").disabled = false;
+    if (!error) {
+      $("signup").hidden = true;
+      $("done").hidden = false;
+      return;
+    }
+    say(error.code === "23505"
+      ? "อีเมลนี้สมัครสมาชิกไว้แล้ว"
+      : "บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", "error");
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รายละเอียดเมนู</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --color-black-olive: #1d0b0d;
+    --color-forest-ink: #103b15;
+    --color-lemon-zest: #f7ea48;
+    --color-warm-cream: #fcf9f0;
+    --color-sage-mist: #dbe2dc;
+    --color-pure-white: #ffffff;
+    --hairline-dark: rgba(219, 226, 220, .25);
+    --font: "DM Sans", "Noto Sans Thai", "Sarabun", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-black-olive); color: var(--color-warm-cream); font-family: var(--font); font-size: 19px; line-height: 1.5; letter-spacing: .02em; }
+  button { font-family: inherit; letter-spacing: inherit; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+  .nav { height: 80px; display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid var(--hairline-dark); }
+  .wordmark { font-size: 26px; font-weight: 500; letter-spacing: .06em; color: var(--color-warm-cream); text-decoration: none; }
+  .back {
+    position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+    color: var(--color-warm-cream); text-decoration: none; text-transform: uppercase;
+    font-size: 16px; font-weight: 500; letter-spacing: .04em; padding: 6px 10px;
+    border: 1px solid var(--color-pure-white); border-radius: 1px;
+  }
+  .back:hover { background: var(--color-warm-cream); color: var(--color-black-olive); }
+  .back:focus-visible, .heart:focus-visible { outline: 2px solid var(--color-pure-white); outline-offset: 3px; }
+
+  .hero { padding: 60px 0; }
+  .banner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+  .visual { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: var(--color-forest-ink); font-size: 10rem; line-height: 1; overflow: hidden; }
+  .visual img { width: 100%; height: 100%; object-fit: cover; }
+  .cap { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; font-weight: 500; margin-bottom: 12px; }
+  h1 { margin: 0 0 20px; font-weight: 400; color: var(--color-lemon-zest); font-size: clamp(46px, 10vw, 75px); line-height: 1.25; letter-spacing: .04em; }
+  .desc { margin: 0 0 30px; font-size: 20px; max-width: 640px; }
+  .heart {
+    height: 44px; padding: 0 20px; border-radius: 1px; cursor: pointer;
+    border: 1px solid var(--color-pure-white); background: transparent; color: var(--color-warm-cream);
+    font-size: 16px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .heart[aria-pressed="true"] { color: var(--color-lemon-zest); border-color: var(--color-lemon-zest); }
+
+  .ing { background: var(--color-warm-cream); color: var(--color-forest-ink); padding: 60px 0 80px; }
+  h2 { margin: 0 0 30px; font-size: 36px; font-weight: 500; line-height: 1.25; letter-spacing: .03em; }
+  #ingredients { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 30px; max-width: 900px; }
+  #ingredients li { padding: 15px 0; border-bottom: 1px solid var(--color-sage-mist); display: flex; gap: 12px; align-items: baseline; }
+  #ingredients li::before { content: "—"; color: var(--color-forest-ink); }
+  .empty { text-align: center; padding: 60px 0; margin: 0; }
+
+  @media (max-width: 720px) {
+    .banner { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+    .hero { padding: 30px 0 40px; }
+    .back { position: static; transform: none; margin-right: auto; }
+    .nav { justify-content: space-between; padding: 0 20px; }
+    .wordmark { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="back" href="index.html">← กลับหน้าแรก</a>
+  <a class="wordmark" href="index.html">วันนี้กินอะไรดี</a>
+</header>
+<main id="content"></main>
+
+<script src="menus.js"></script>
+<script>
+  const STORAGE_KEY = "thai-food-favorites";   // ใช้ร่วมกับหน้าแรก
+  const id = new URLSearchParams(location.search).get("id");
+  const menu = MENUS.find(m => m.id === id);
+  const content = document.getElementById("content");
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+  }
+  function save(list) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {}
+  }
+
+  let liked = menu ? load().includes(menu.id) : false;
+
+  function el(tag, className, text) {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  function wrap(...children) {
+    const w = el("div", "wrap");
+    w.append(...children);
+    return w;
+  }
+
+  function render() {
+    if (!menu) {
+      document.title = "ไม่พบเมนู";
+      content.replaceChildren(wrap(el("p", "empty", "ไม่พบเมนูที่ต้องการ")));
+      return;
+    }
+    document.title = menu.name + " – รายละเอียดเมนู";
+
+    const visual = el("div", "visual");
+    if (menu.image) {
+      const img = document.createElement("img");
+      img.src = menu.image;
+      img.alt = menu.name;
+      img.onerror = () => { visual.textContent = menu.emoji; };
+      visual.append(img);
+    } else {
+      visual.textContent = menu.emoji;
+    }
+
+    const text = el("div", "text");
+    text.append(el("div", "cap", menu.category), el("h1", "", menu.name), el("p", "desc", menu.description));
+
+    const heart = el("button", "heart", liked ? "♥ ชอบแล้ว" : "♡ ชอบเมนูนี้");
+    heart.type = "button";
+    heart.setAttribute("aria-pressed", liked);
+    heart.setAttribute("aria-label", (liked ? "เลิกชอบ " : "ชอบ ") + menu.name);
+    heart.onclick = () => {
+      const list = load();
+      liked = !list.includes(menu.id);
+      save(liked ? [...list, menu.id] : list.filter(f => f !== menu.id));
+      render();
+    };
+    text.append(heart);
+
+    const banner = el("div", "banner");
+    banner.append(text, visual);
+    const hero = el("section", "hero");
+    hero.append(wrap(banner));
+
+    const list = el("ul");
+    list.id = "ingredients";
+    for (const item of INGREDIENTS[menu.id] || []) list.append(el("li", "", item));
+    const ing = el("section", "ing");
+    ing.append(wrap(el("h2", "", "ส่วนประกอบ"), list));
+
+    content.replaceChildren(hero, ing);
+  }
+
+  render();
+</script>
+</body>
+</html>
